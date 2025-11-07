@@ -10,7 +10,32 @@ fn Parser::expression_list(
       break
     }
     expressions.push(self.expression(0))
-    self.tokenizer.expect_char(',')
+    if !self.tokenizer.optionally_expect_char(',') {
+      self.tokenizer.expect_char(closing_char)
+      break
+    }
+  }
+  return expressions
+}
+
+
+fn[T] Parser::custom_list(
+  self : Parser,
+  opening_char : Char,
+  closing_char : Char,
+  parser_func : (Parser) -> T,
+) -> Array[T] {
+  let expressions = []
+  self.tokenizer.expect_char(opening_char)
+  while self.tokenizer.in_range() {
+    if self.tokenizer.optionally_expect_char(closing_char) {
+      break
+    }
+    expressions.push(parser_func(self))
+    if !self.tokenizer.optionally_expect_char(',') {
+      self.tokenizer.expect_char(closing_char)
+      break
+    }
   }
   return expressions
 }

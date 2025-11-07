@@ -29,6 +29,9 @@ fn Tokenizer::next_non_space_char(self : Tokenizer) -> Char{
   while self.in_range() && self.cur_char() == ' ' {
     self.pos += 1
   }
+  if ! self.in_range(){
+    return ' '
+  }
   return self.cur_char()
 }
 fn Tokenizer::optionally_expect_char(self : Tokenizer, c : Char) -> Bool{

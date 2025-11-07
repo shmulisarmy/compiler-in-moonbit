@@ -52,6 +52,46 @@ struct Parser{
   tokenizer: Tokenizer
 }
 
+fn Parser::identifier(self: Parser) -> StringView{
+  self.tokenizer.skip_spaces()
+  return self.tokenizer.collect_while_in(fn(c : Char) -> Bool {
+    return c.is_ascii_alphabetic()
+  })
+} 
+
+fn Parser::type_(self: Parser) -> Type{
+  if self.tokenizer.optionally_expect_char('[') {
+    self.tokenizer.expect_char(']')
+    return Type::{name: "Array", subtypes: Some([self.type_()])}
+  }
+  let t = Type::new(self.identifier().to_string())
+  if self.tokenizer.next_non_space_char() == '<' {
+    t.subtypes = Some(self.custom_list('<', '>', fn(parser : Parser) -> Type {
+      return parser.type_()
+    }))
+  }
+  return t
+} 
+
+fn Parser::looks_like_type(self: Parser) -> Bool{
+  self.tokenizer.skip_spaces()
+  return self.tokenizer.next_non_space_char().is_ascii_alphabetic() || self.tokenizer.next_non_space_char() == '['
+}
+fn Parser::function(self: Parser) -> Function{
+  let name = self.identifier()
+  let params = self.custom_list('(', ')', fn(parser : Parser) -> Var {
+    return parser.var()
+  })
+  println("this point")
+  let return_type = match self.looks_like_type() {
+    true => self.type_()
+    false => Type::new("unknown")
+  }
+  return Function::{name: name.to_string(), params, return_type}
+} 
+
+
+
 
 
 
@@ -69,13 +109,9 @@ struct Parser{
 ///|
 
 fn Parser::var(self : Parser) -> Var {
-  let name = self.tokenizer.collect_while_in(fn(c : Char) -> Bool {
-    return c.is_ascii_alphabetic()
-  })
+  let name = self.identifier()
   let type_ = if self.tokenizer.next_non_space_char().is_ascii_alphabetic() {
-    Type::new(self.tokenizer.collect_while_in(fn(c : Char) -> Bool {
-      return c.is_ascii_alphabetic()
-    }).to_string())
+    Type::new(self.identifier().to_string())
   } else {
     Type::new("unknown")
   }
@@ -102,7 +138,7 @@ fn Parser::new(source : String) -> Parser {
 
 struct Type {
   name : String
-  subtypes : Option[Array[Type]]
+  mut subtypes : Option[Array[Type]]
 } derive (Eq)
 fn green(text: String) -> String {
     "\x1b[32m\{text}\x1b[0m".to_string()
@@ -170,9 +206,8 @@ let function : Type = Type::new("Function")
 
 
 fn main{
-  let parser = Parser::new("\"12\" + 4.get_len(a,a,) * add() + []")
-
-  println(parser.expression(0).to_string())
+  let parser = Parser::new("add(a Int, b Int)[]Person<Int> ")
+  println(parser.function().to_string())
 }
 
 
