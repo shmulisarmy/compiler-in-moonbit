@@ -14,8 +14,9 @@ test "operator precedence" {
 test {
   let parser = Parser::new("person1.name")
   let expected = Expresssion::FieldAccess(FieldAccess::{object: Expresssion::VarReference("person1"), field: "name"})
-  if !parser.expression(0).equal(expected) {
-    println("expected \{expected.to_string()} but got \{parser.expression(0).to_string()}")
+  let actual = parser.expression(0)
+  if !actual.equal(expected) {
+    println("expected \{expected.to_string()} but got \{actual.to_string()}")
     panic()
   }
 }

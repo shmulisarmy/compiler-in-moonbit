@@ -122,15 +122,15 @@ fn Tokenizer::expect_token_type(self : Tokenizer, token_type : TokenType) -> Str
 fn Tokenizer::next(self : Tokenizer) -> Token {
   self.skip_spaces()
   
-  if self.cur_char() >= '0' && self.cur_char() <= '9' {
+  if self.cur_char().is_ascii_digit() {
     return Token::{
       type_: TokenType::Number,
       value: self.collect_while_in(fn(c : Char) -> Bool {
-        return c >= '0' && c <= '9'
+        return c.is_ascii_digit()
       })
     }
   }
-  if (self.cur_char() >= 'a' && self.cur_char() <= 'z') || (self.cur_char() >= 'A' && self.cur_char() <= 'Z') || self.cur_char() == '_' {
+  if self.cur_char().is_ascii_alphabetic() || self.cur_char() == '_' {
     let ident = self.identifier()
     if keywords.contains(ident.to_string()) {
       return Token::{

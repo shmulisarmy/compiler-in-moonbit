@@ -24,7 +24,22 @@ fn Scope::get_symbol(self : Scope, name : String) -> Symbol{
   match self {
     Scope::Module(module) => return module.symbols[name]
     Scope::Function(function) => {
-      println("not implemented")
+      for statement in function.body.statements.rev_iter() {
+        match statement {
+          Statement::VarDeclaration(var_) => {
+            if var_.name == name {
+              return Symbol::Var(var_)
+            }
+          }
+          _ => ()
+        }
+      }
+      for param in function.params {
+        if param.name == name {
+          return Symbol::Var(param)
+        }
+      }
+      println("symbol \"\{name}\" not found")
       panic()
     }
   }
@@ -72,7 +87,7 @@ fn Scope::ensure_var_has_proper_type(self : Scope, var_ : Var) -> Unit {
     match var_.defualt_value{
       Some(default_value) => {
         if !var_.type_.can_hold(self.get_expression_type(default_value)) {
-          println("var type and defualt value mismatch")
+          println("var \"\{var_.name}\" type \"\{var_.type_.name}\" and defualt value \"\{self.get_expression_type(default_value).name}\" mismatch")
           panic()
         }
       }

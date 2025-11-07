@@ -55,7 +55,7 @@ struct Parser{
 fn Tokenizer::identifier(self: Tokenizer) -> StringView{
   self.skip_spaces()
   return self.collect_while_in(fn(c : Char) -> Bool {
-    return c.is_ascii_alphabetic()
+    return c.is_ascii_alphabetic() || c == '_' || c.is_ascii_digit()
   })
 } 
 
@@ -199,14 +199,24 @@ let function : Type = Type::new("Function")
 
 
 
-
-
+fn Function::type_check_var_statments(self : Function) -> Unit{
+  for var_ in self.params {
+    Scope::Function(self).ensure_var_has_proper_type(var_)
+  } 
+  for var_ in self.body.statements {
+    match var_ {
+      Statement::VarDeclaration(var_) => {
+        Scope::Function(self).ensure_var_has_proper_type(var_)
+      } 
+      _ => ()
+    }
+  } 
+}
 
 
 
 fn main{
-  let parser = Parser::new("add(a Int, b Int)Int {\nvar c = 9\nreturn a+b}")
-  println(parser.function().to_string())
+
 }
 
 
