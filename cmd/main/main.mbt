@@ -500,23 +500,31 @@ fn Module::get_symbol_type(self : Module, symbol : Symbol) -> Type{
       //   println("function \"\{function.name}\" has an unknown return type")
       //   panic()
       // }
-      return Type::{
+      let t =  Type::{
         name: "Function",
         subtypes: Some([Type::{name: "params", subtypes: Some(function.params.map((param) => {
           self.ensure_var_has_proper_type(param)
           return param.type_
         }))}, function.return_type])
       }
+      println("got here")
+      return t
     }
   }
 }
 
 ///|
 fn Module::ensure_var_has_proper_type(self : Module, var_ : Var) -> Unit {
+  
   if var_.type_.name != "unknown" {
-    if !var_.type_.can_hold(self.get_expression_type(var_.defualt_value.unwrap())) {
-      println("var type and defualt value mismatch")
-      panic()
+    match var_.defualt_value{
+      Some(default_value) => {
+        if !var_.type_.can_hold(self.get_expression_type(default_value)) {
+          println("var type and defualt value mismatch")
+          panic()
+        }
+      }
+      _ => ()
     }
   } else if var_.defualt_value is Some(default_value) {
     var_.type_ = self.get_expression_type(default_value)
@@ -602,26 +610,24 @@ test "get symbol type from var reference with var type inference"{
 }
 
 
-// test "function call that references real function"{
-//   let t = Type::new("Array")
-//   println(t.to_string())
-//   let my_module = Module::{name: "main", symbols: {
-//     "add" : Symbol::Function(Function::{name: "add", params: [
-//       Var::{name: "a", type_: int, defualt_value: None},
-//       Var::{name: "b", type_: int, defualt_value: None}
-//     ], return_type: int})
-//   }}
-//   let add_func_sig = my_module.get_symbol_type(my_module.symbols["add"])
-//   println("function call: \{add_func_sig.to_string()}")
-//   let function_call = Parser::new("add()").expression(0)
-//   my_module.validate_function_call_against_function_signiture(match function_call{
-//     Expresssion::FunctionCall(function_call) => function_call
-//     _ => {
-//       println("function call expected")
-//       panic()
-//     }
-//   }, my_module.get_symbol_type(my_module.symbols["add"]))
-// }
+test "function call that references real function"{
+  let my_module = Module::{name: "main", symbols: {
+    "add" : Symbol::Function(Function::{name: "add", params: [
+      Var::{name: "a", type_: int, defualt_value: None},
+      Var::{name: "b", type_: int, defualt_value: None}
+    ], return_type: int})
+  }}
+  let add_func_sig = my_module.get_symbol_type(my_module.symbols["add"])
+  
+  let function_call = Parser::new("add(1, 2,)").expression(0)
+  my_module.validate_function_call_against_function_signiture(match function_call{
+    Expresssion::FunctionCall(function_call) => function_call
+    _ => {
+      println("function call expected")
+      panic()
+    }
+  }, add_func_sig)
+}
 
 
 
