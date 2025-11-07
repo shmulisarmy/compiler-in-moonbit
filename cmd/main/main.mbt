@@ -199,7 +199,8 @@ let function : Type = Type::new("Function")
 
 
 
-fn Function::type_check_var_statments(self : Function) -> Unit{
+fn Function::type_check_vars(self : Function) -> Unit{
+  // statements and assignments
   for var_ in self.params {
     Scope::Function(self).ensure_var_has_proper_type(var_)
   } 
@@ -207,7 +208,13 @@ fn Function::type_check_var_statments(self : Function) -> Unit{
     match var_ {
       Statement::VarDeclaration(var_) => {
         Scope::Function(self).ensure_var_has_proper_type(var_)
-      } 
+      }
+      Statement::Assign(assign) => {
+        if !Scope::Function(self).get_expression_type(assign.reciever).can_hold(Scope::Function(self).get_expression_type(assign.value)) {
+          println("you are trying to assign to \"\{assign.reciever.to_string()}\" of type \"\{Scope::Function(self).get_expression_type(assign.reciever).name}\" with type \"\{Scope::Function(self).get_expression_type(assign.value).name}\"")
+          panic()
+        }
+      }  
       _ => ()
     }
   } 
