@@ -96,7 +96,7 @@ fn Tokenizer::collect_while_in(self : Tokenizer, predicate : (Char) -> Bool) -> 
 }
 
 
-fn Tokenizer::optionaly_expect_token_type(self : Tokenizer, token_type : TokenType) -> (Bool, StringView) {
+fn Tokenizer::optionally_expect_token_type(self : Tokenizer, token_type : TokenType) -> (Bool, StringView) {
   let before_pos = self.pos
   let token = self.next()
   if token.type_ != token_type {
@@ -184,6 +184,6 @@ fn Tokenizer::next(self : Tokenizer) -> Token {
       value: "\n"
     }
   }
-  println("dont know how to handle \"\{self.cur_char()}\"")
+  println("don't know how to handle \"\{self.cur_char()}\"")
   panic()
 }

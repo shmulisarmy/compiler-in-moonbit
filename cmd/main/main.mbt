@@ -114,13 +114,13 @@ fn Parser::var(self : Parser) -> Var {
   } else {
     Type::new("unknown")
   }
-  let defualt_value = 
+  let default_value = 
   if self.tokenizer.optionally_expect_char('=') {
     Some(self.expression(0))
   } else {
     None
   }
-  return Var::{name: name.to_string(), type_: type_, defualt_value: defualt_value}
+  return Var::{name: name.to_string(), type_: type_, default_value: default_value}
 }
 
 
@@ -186,12 +186,10 @@ fn Type::new(name : String) -> Type {
 let int : Type = Type::new("Int")
 let string : Type = Type::new("String")
 let array : Type = Type::new("Array")
-let function : Type = Type::new("Function")
+let function_ : Type = Type::new("Function")
 
 
-/// 
-/// compiler bit
-/// 
+
 
 
 
@@ -210,8 +208,8 @@ fn Function::type_check_vars(self : Function) -> Unit{
         Scope::Function(self).ensure_var_has_proper_type(var_)
       }
       Statement::Assign(assign) => {
-        if !Scope::Function(self).get_expression_type(assign.reciever).can_hold(Scope::Function(self).get_expression_type(assign.value)) {
-          println("you are trying to assign to \"\{assign.reciever.to_string()}\" of type \"\{Scope::Function(self).get_expression_type(assign.reciever).name}\" with type \"\{Scope::Function(self).get_expression_type(assign.value).name}\"")
+        if !Scope::Function(self).get_expression_type(assign.receiver).can_hold(Scope::Function(self).get_expression_type(assign.value)) {
+          println("you are trying to assign to \"\{assign.receiver.to_string()}\" of type \"\{Scope::Function(self).get_expression_type(assign.receiver).name}\" with type \"\{Scope::Function(self).get_expression_type(assign.value).name}\"")
           panic()
         }
       }  

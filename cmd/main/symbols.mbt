@@ -1,12 +1,12 @@
 struct Var{
   name : String
   mut type_ : Type
-  defualt_value : Option[Expresssion]
+  default_value : Option[Expression]
 }
 
 fn Var::to_string(self : Var) -> String{
-  match self.defualt_value {
-    Some(defualt_value) => return "\{self.name}: \{self.type_.to_string()} = \{defualt_value.to_string()}"
+  match self.default_value {
+    Some(default_value) => return "\{self.name}: \{self.type_.to_string()} = \{default_value.to_string()}"
     None => return "\{self.name}: \{self.type_.to_string()}"
   }
 }

@@ -1,7 +1,7 @@
 
 struct Operation{
-  left : Expresssion
-  right : Expresssion
+  left : Expression
+  right : Expression
   op : Token
 } derive (Eq) 
 
@@ -16,27 +16,27 @@ fn Operation::to_string(self : Operation) -> String{
 
 
 
-let operater_precedence: Map[String, Int] = {
+let operator_precedence: Map[String, Int] = {
   "+" : 1,
   "-" : 1,
   "*" : 2,
   "/" : 2,
 }
 
-fn Parser::expression(self : Parser, left_pull: Int) -> Expresssion {
-    let mut left: Expresssion = self.wrapped_term()
+fn Parser::expression(self : Parser, left_pull: Int) -> Expression {
+    let mut left: Expression = self.wrapped_term()
     while self.tokenizer.in_range() {
       let prev = self.tokenizer.pos
       let token = self.tokenizer.next()
       match token.type_ {
         TokenType::Operator => {
-          if left_pull >= operater_precedence[token.value.to_string()] {
+          if left_pull >= operator_precedence[token.value.to_string()] {
             self.tokenizer.pos = prev
             return left
           }
           let op = token
-          let right = self.expression(operater_precedence[token.value.to_string()])
-          left = Expresssion::Operation(Operation::{left: left, right: right, op: op})
+          let right = self.expression(operator_precedence[token.value.to_string()])
+          left = Expression::Operation(Operation::{left: left, right: right, op: op})
         }
         _ => {
           self.tokenizer.pos = prev

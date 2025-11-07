@@ -1,7 +1,7 @@
 test "basic_type_checking" {
   let my_module = Module::{name: "main", symbols: {}}
-  let expresssion = Parser::new("12").expression(0)
-  if !Scope::Module(my_module).get_expression_type(expresssion).equal(int) {
+  let expression = Parser::new("12").expression(0)
+  if !Scope::Module(my_module).get_expression_type(expression).equal(int) {
     println("12 should have inferred an Int type from the 2")
     panic()
   }

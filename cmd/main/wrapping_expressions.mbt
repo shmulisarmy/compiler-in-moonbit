@@ -2,7 +2,7 @@ fn Parser::expression_list(
   self : Parser,
   opening_char : Char,
   closing_char : Char,
-) -> Array[Expresssion] {
+) -> Array[Expression] {
   let expressions = []
   self.tokenizer.expect_char(opening_char)
   while self.tokenizer.in_range() {
@@ -41,17 +41,17 @@ fn[T] Parser::custom_list(
 }
 
 
-fn Parser::wrapped_term(self : Parser) -> Expresssion {
+fn Parser::wrapped_term(self : Parser) -> Expression {
   let mut expr = self.term()
   while self.tokenizer.in_range()  {
     let mut changed_since_last_time = false
     if self.tokenizer.next_non_space_char() == '(' {
-      expr = Expresssion::FunctionCall(FunctionCall::{name: expr.to_string(), args: self.expression_list('(', ')')})
+      expr = Expression::FunctionCall(FunctionCall::{name: expr.to_string(), args: self.expression_list('(', ')')})
       changed_since_last_time = true
     }
     if self.tokenizer.optionally_expect_char('.') {
       let field = self.tokenizer.next().value
-      expr = Expresssion::FieldAccess(FieldAccess::{object: expr, field: field})
+      expr = Expression::FieldAccess(FieldAccess::{object: expr, field: field})
       changed_since_last_time = true
     }
     if !changed_since_last_time{
@@ -64,7 +64,7 @@ fn Parser::wrapped_term(self : Parser) -> Expresssion {
 
 
 struct FieldAccess{
-  object : Expresssion
+  object : Expression
   field : StringView
 } derive (Eq) 
 
@@ -75,7 +75,7 @@ fn FieldAccess::to_string(self : FieldAccess) -> String{
 
 struct FunctionCall{
   name : String
-  args : Array[Expresssion]
+  args : Array[Expression]
 } derive (Eq) 
 
 fn FunctionCall::to_string(self : FunctionCall) -> String{
