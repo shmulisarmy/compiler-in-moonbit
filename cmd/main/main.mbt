@@ -52,9 +52,9 @@ struct Parser{
   tokenizer: Tokenizer
 }
 
-fn Parser::identifier(self: Parser) -> StringView{
-  self.tokenizer.skip_spaces()
-  return self.tokenizer.collect_while_in(fn(c : Char) -> Bool {
+fn Tokenizer::identifier(self: Tokenizer) -> StringView{
+  self.skip_spaces()
+  return self.collect_while_in(fn(c : Char) -> Bool {
     return c.is_ascii_alphabetic()
   })
 } 
@@ -64,7 +64,7 @@ fn Parser::type_(self: Parser) -> Type{
     self.tokenizer.expect_char(']')
     return Type::{name: "Array", subtypes: Some([self.type_()])}
   }
-  let t = Type::new(self.identifier().to_string())
+  let t = Type::new(self.tokenizer.identifier().to_string())
   if self.tokenizer.next_non_space_char() == '<' {
     t.subtypes = Some(self.custom_list('<', '>', fn(parser : Parser) -> Type {
       return parser.type_()
@@ -78,16 +78,15 @@ fn Parser::looks_like_type(self: Parser) -> Bool{
   return self.tokenizer.next_non_space_char().is_ascii_alphabetic() || self.tokenizer.next_non_space_char() == '['
 }
 fn Parser::function(self: Parser) -> Function{
-  let name = self.identifier()
+  let name = self.tokenizer.identifier()
   let params = self.custom_list('(', ')', fn(parser : Parser) -> Var {
     return parser.var()
   })
-  println("this point")
   let return_type = match self.looks_like_type() {
     true => self.type_()
     false => Type::new("unknown")
   }
-  return Function::{name: name.to_string(), params, return_type}
+  return Function::{name: name.to_string(), params, return_type, body: self.block()}
 } 
 
 
@@ -109,9 +108,9 @@ fn Parser::function(self: Parser) -> Function{
 ///|
 
 fn Parser::var(self : Parser) -> Var {
-  let name = self.identifier()
+  let name = self.tokenizer.identifier()
   let type_ = if self.tokenizer.next_non_space_char().is_ascii_alphabetic() {
-    Type::new(self.identifier().to_string())
+    Type::new(self.tokenizer.identifier().to_string())
   } else {
     Type::new("unknown")
   }
@@ -206,7 +205,7 @@ let function : Type = Type::new("Function")
 
 
 fn main{
-  let parser = Parser::new("add(a Int, b Int)[]Person<Int> ")
+  let parser = Parser::new("add(a Int, b Int)Int {\nvar c = 9\nreturn a+b}")
   println(parser.function().to_string())
 }
 

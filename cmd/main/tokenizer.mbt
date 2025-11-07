@@ -6,6 +6,8 @@ enum TokenType {
   Keyword
   Invalid
   Punctuation
+  Assign
+  NewLine
 } derive(Show, Eq)
 
 struct Token {
@@ -15,6 +17,7 @@ struct Token {
 
 
 
+let keywords = ["return", "var", "func", "if", "else", "while", "for", "break", "continue", "null"]
 fn Token::to_string(self : Token)->String{
   return "\{self.value}"
 }
@@ -57,11 +60,20 @@ fn Tokenizer::in_range(self : Tokenizer) -> Bool{
 
 
 fn Tokenizer::cur_char(self : Tokenizer) -> Char{
+  if !self.in_range(){
+    return ' '
+  }
   return self.source.get_char(self.pos).unwrap()
 }
 
 fn Tokenizer::skip_spaces(self : Tokenizer) -> Unit {
-  while self.in_range() && self.cur_char() == ' ' {
+  while self.in_range() && (self.cur_char() == ' ' || self.cur_char() == '\t') {
+    self.pos += 1
+  }
+}
+
+fn Tokenizer::skip_lines(self : Tokenizer) -> Unit {
+  while self.in_range() && (self.cur_char() == '\n' || self.cur_char() == '\r' || self.cur_char() == ' ' || self.cur_char() == '\t' || self.cur_char() == '\f') {
     self.pos += 1
   }
 }
@@ -84,6 +96,29 @@ fn Tokenizer::collect_while_in(self : Tokenizer, predicate : (Char) -> Bool) -> 
 }
 
 
+fn Tokenizer::optionaly_expect_token_type(self : Tokenizer, token_type : TokenType) -> (Bool, StringView) {
+  let before_pos = self.pos
+  let token = self.next()
+  if token.type_ != token_type {
+    self.pos = before_pos
+    return (false, token.value)
+  }
+  return (true, token.value)
+}
+
+
+
+fn Tokenizer::expect_token_type(self : Tokenizer, token_type : TokenType) -> StringView {
+  let token = self.next()
+  if token.type_ != token_type {
+    println("expecting \"\{token_type}\" but found \"\{token.value}\"")
+    panic()
+  }
+  return token.value
+}
+
+
+
 fn Tokenizer::next(self : Tokenizer) -> Token {
   self.skip_spaces()
   
@@ -96,12 +131,17 @@ fn Tokenizer::next(self : Tokenizer) -> Token {
     }
   }
   if (self.cur_char() >= 'a' && self.cur_char() <= 'z') || (self.cur_char() >= 'A' && self.cur_char() <= 'Z') || self.cur_char() == '_' {
+    let ident = self.identifier()
+    if keywords.contains(ident.to_string()) {
+      return Token::{
+        type_: TokenType::Keyword,
+        value: ident
+      }
+    }
     return Token::{
       type_: TokenType::Identifier,
-      value: self.collect_while_in(fn(c : Char) -> Bool {
-        return (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') || (c >= '0' && c <= '9') || c == '_'
-      })
-  }
+      value: ident
+    }
   }
   if operatorChars.contains(self.cur_char()) {
     return Token::{
@@ -128,6 +168,20 @@ fn Tokenizer::next(self : Tokenizer) -> Token {
     return Token::{
       type_: TokenType::String,
       value: string_value
+    }
+  }
+  if self.cur_char() == '=' {
+    self.pos += 1
+    return Token::{
+      type_: TokenType::Assign,
+      value: "="
+    }
+  }
+  if self.cur_char() == '\n' {
+    self.pos += 1
+    return Token::{
+      type_: TokenType::NewLine,
+      value: "\n"
     }
   }
   println("dont know how to handle \"\{self.cur_char()}\"")

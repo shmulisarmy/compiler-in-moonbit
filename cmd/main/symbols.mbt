@@ -12,9 +12,13 @@ fn Var::to_string(self : Var) -> String{
 }
 
 
+
+
+
 struct Function{
   name : String
   params : Array[Var]
+  body : Block
   return_type : Type
 }
 
@@ -25,7 +29,10 @@ fn Function::to_string(self : Function) -> String{
   let params = self.params.map(fn(param : Var) -> String {
     return param.name
   }).join(", ")
-  return "\{self.name}(\{params})[]\{self.return_type.to_string()}"
+  let body = "{\n"+ self.body.statements.map(fn(statement : Statement) -> String {
+    return "     "+statement.to_string()
+  }).join("\n")+"\n"+"}"
+  return "\{self.name}(\{params})[]\{self.return_type.to_string()}\{body}"
 }
 enum Symbol{
   Var(Var)
