@@ -538,9 +538,9 @@ fn Module::ensure_var_has_proper_type(self : Module, var_ : Var) -> Unit {
 
 
 
-test {
-  let parser = Parser::new("123 + 456 * 98")
-  assert_eq(parser.expression(0).to_string(), "(123 + (456 * 98))")
+test "operator precedence" {
+  let parser = Parser::new("12 + 4 * 9")
+  assert_eq(parser.expression(0).to_string(), "(12 + (4 * 9))")
   //
   let parser = Parser::new("person1.name")
   assert_eq(parser.expression(0).to_string(), "person1.name")
