@@ -1,0 +1,1 @@
+if you see something like ```Scope::Module(my_module)``` where i wrap a perfectly looking module instance into a scope enum (or i do the same for function), it's because i need to pass the module or function into scope to call scope and function methods that are only available to them as an instance of a Scope enum
