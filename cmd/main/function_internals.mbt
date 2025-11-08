@@ -7,6 +7,7 @@ enum Statement{
   VarDeclaration(Var)
   Assign(Assign)
   Return(Option[Expression])
+  Block(Block)
 }
 
 
@@ -19,6 +20,7 @@ fn Statement::to_string(self : Statement) -> String{
       Some(return_) => "return \{return_.to_string()}"
       None => "return".to_string()
     }
+    Statement::Block(block) => return block.to_string()
   }
 }
 
@@ -46,7 +48,7 @@ fn Parser::statement(self : Parser) -> Statement{
   }
 }
 fn Parser::block(self : Parser) -> Block{
-  let block = Block::{statements: []}
+  let block = Block::{statements: [], parent: None}
   self.tokenizer.expect_char('{')
   self.tokenizer.skip_lines()
   while self.tokenizer.in_range() && !self.tokenizer.optionally_expect_char('}') {
@@ -58,4 +60,27 @@ fn Parser::block(self : Parser) -> Block{
 }
 struct Block{
   statements : Array[Statement]
+  mut parent : Option[Scope]
+}
+
+
+
+fn Block::to_string(self : Block) -> String{
+  let statements = self.statements.map(fn(statement : Statement) -> String {
+    return statement.to_string()
+  }).join("\n")
+  return "\{statements}"
+}
+
+
+fn Block::do_parenting(self : Block) -> Unit{
+  for statement in self.statements {
+    match statement {
+      Statement::Block(block) => {
+        block.parent = Some(self.parent.unwrap())
+        block.do_parenting()
+      }
+      _ => ()
+    }
+  }
 }

@@ -20,6 +20,7 @@ struct Function{
   params : Array[Var]
   body : Block
   return_type : Type
+  mut parent : Option[Scope]
 }
 
 
@@ -37,6 +38,21 @@ fn Function::to_string(self : Function) -> String{
 enum Symbol{
   Var(Var)
   Function(Function)
+}
+
+
+
+
+fn Function::do_parenting(self : Function) -> Unit{
+  for statement in self.body.statements {
+    match statement {
+      Statement::Block(block) => {
+        block.parent = Some(Scope::Function(self))
+        block.do_parenting()
+      }
+      _ => ()
+    }
+  }
 }
 
 

@@ -86,7 +86,7 @@ fn Parser::function(self: Parser) -> Function{
     true => self.type_()
     false => Type::new("unknown")
   }
-  return Function::{name: name.to_string(), params, return_type, body: self.block()}
+  return Function::{name: name.to_string(), params, return_type, body: self.block(), parent: None}
 } 
 
 
