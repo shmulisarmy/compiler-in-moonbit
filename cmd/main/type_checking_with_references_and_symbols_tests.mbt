@@ -30,7 +30,7 @@ test "function call that references real function"{
     "add" : Symbol::Function(Function::{name: "add", params: [
       Var::{name: "a", type_: int, default_value: None},
       Var::{name: "b", type_: int, default_value: None}
-    ], return_type: int, body: Block::{statements: [], parent: None}, parent: None})
+    ], return_type: int, body: Block::{statements: [], parent: None, name: None, head: None}, parent: None})
   }}
   let add_func_sig = Scope::Module(my_module).get_symbol_type(my_module.symbols["add"])
   

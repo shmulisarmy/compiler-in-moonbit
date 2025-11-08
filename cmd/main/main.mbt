@@ -86,7 +86,7 @@ fn Parser::function(self: Parser) -> Function{
     true => self.type_()
     false => Type::new("unknown")
   }
-  return Function::{name: name.to_string(), params, return_type, body: self.block(), parent: None}
+  return Function::{name: name.to_string(), params, return_type, body: Block::{parent: None, name: None, head: None, statements: self.block_statements()}, parent: None}
 } 
 
 
@@ -195,24 +195,31 @@ let function_ : Type = Type::new("Function")
 
 
 
-
-
 fn Function::type_check_vars(self : Function) -> Unit{
-  // statements and assignments
+  self.body.parent = Some(Scope::Function(self))
   for var_ in self.params {
     Scope::Function(self).ensure_var_has_proper_type(var_)
   } 
-  for var_ in self.body.statements {
+  self.body.type_check_vars()
+}
+fn Block::type_check_vars(self : Block) -> Unit{
+  // statements and assignments
+  for var_ in self.statements {
     match var_ {
       Statement::VarDeclaration(var_) => {
-        Scope::Function(self).ensure_var_has_proper_type(var_)
+        Scope::Block(self).ensure_var_has_proper_type(var_)
       }
       Statement::Assign(assign) => {
-        if !Scope::Function(self).get_expression_type(assign.receiver).can_hold(Scope::Function(self).get_expression_type(assign.value)) {
-          println("you are trying to assign to \"\{assign.receiver.to_string()}\" of type \"\{Scope::Function(self).get_expression_type(assign.receiver).name}\" with type \"\{Scope::Function(self).get_expression_type(assign.value).name}\"")
+        if !Scope::Block(self).get_expression_type(assign.receiver).can_hold(Scope::Block(self).get_expression_type(assign.value)) {
+          println("you are trying to assign to \"\{assign.receiver.to_string()}\" of type \"\{Scope::Block(self).get_expression_type(assign.receiver).name}\" with type \"\{Scope::Block(self).get_expression_type(assign.value).name}\"")
           panic()
         }
-      }  
+      } 
+      Statement::Block(block) => {
+        block.parent = Some(Scope::Block(self))
+        block.do_parenting()
+        block.type_check_vars()
+      } 
       _ => ()
     }
   } 
@@ -221,7 +228,29 @@ fn Function::type_check_vars(self : Function) -> Unit{
 
 
 fn main{
+  let p = Parser::new(
+   (#| add(a Int, b Int) Int {
+    #|  if a > b {
+    #|    var c Int = n + b
+    #|    return c
+    #|  }
+    #|  return a
+    #|}
+    #|
+    #|
+    #|
+    #|
+    #|
+    #|
+    )
+  )  
 
+
+
+  let f = p.function()
+  println("func: \{f.to_string()}")
+  f.do_parenting()
+  f.type_check_vars()
 }
 
 

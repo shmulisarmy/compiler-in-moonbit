@@ -78,7 +78,7 @@ fn Tokenizer::skip_lines(self : Tokenizer) -> Unit {
   }
 }
 
-let operatorChars = ['+', '-', '(', ')', '*', '/']
+let operatorChars = ['+', '-', '(', ')', '*', '/', '<', '>', '!', '&', '|']
 let punctuationChars = ['}', '{', '(', ')', '[', ']', ';', ':', ',']
 
 

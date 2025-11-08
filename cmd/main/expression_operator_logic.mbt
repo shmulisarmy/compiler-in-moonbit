@@ -21,6 +21,8 @@ let operator_precedence: Map[String, Int] = {
   "-" : 1,
   "*" : 2,
   "/" : 2,
+  "<" : 3,
+  ">" : 3,
 }
 
 fn Parser::expression(self : Parser, left_pull: Int) -> Expression {

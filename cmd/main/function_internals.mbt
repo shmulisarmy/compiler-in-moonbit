@@ -11,7 +11,7 @@ enum Statement{
 }
 
 
-fn Statement::to_string(self : Statement) -> String{
+fn Statement::to_string(self : Statement, depth: Int) -> String{
   match self {
     Statement::FunctionCall(function_call) => return function_call.to_string()
     Statement::VarDeclaration(var_) => return var_.to_string()
@@ -20,7 +20,7 @@ fn Statement::to_string(self : Statement) -> String{
       Some(return_) => "return \{return_.to_string()}"
       None => "return".to_string()
     }
-    Statement::Block(block) => return block.to_string()
+    Statement::Block(block) => return block.to_string(depth)
   }
 }
 
@@ -32,6 +32,8 @@ fn Parser::statement(self : Parser) -> Statement{
   match self.tokenizer.optionally_expect_token_type(TokenType::Keyword) {
     (true, "var") => return Statement::VarDeclaration(self.var())
     (true, "return") => return Statement::Return(Some(self.expression(0)))
+    (true, "if") => return Statement::Block(Block::{parent: None, name: Some("if"), head: Some(self.expression(0)), statements: self.block_statements()})
+    (true, "while") => return Statement::Block(Block::{parent: None, name: Some("while"), head: Some(self.expression(0)), statements: self.block_statements()})
     _ => ()
   }
 
@@ -47,28 +49,47 @@ fn Parser::statement(self : Parser) -> Statement{
     }
   }
 }
-fn Parser::block(self : Parser) -> Block{
-  let block = Block::{statements: [], parent: None}
+fn Parser::block_statements(self : Parser) -> Array[Statement]{
+  let statements = []
   self.tokenizer.expect_char('{')
   self.tokenizer.skip_lines()
   while self.tokenizer.in_range() && !self.tokenizer.optionally_expect_char('}') {
-    block.statements.push(self.statement())
+    statements.push(self.statement())
     self.tokenizer.skip_lines() 
     
   }
-  return block
+  return statements
 }
 struct Block{
   statements : Array[Statement]
   mut parent : Option[Scope]
+  //these are for conditional blocks
+  name: Option[String]
+  head: Option[Expression]
 }
 
 
+fn Block::is_conditional(self : Block) -> Bool{
+  if self.name is Some(name) {
+    if self.head is None{
+      println("conditional block \"\{name}\" has no head expression")
+      panic()
+    }
+    return true
+  }
+  return false
+}
 
-fn Block::to_string(self : Block) -> String{
-  let statements = self.statements.map(fn(statement : Statement) -> String {
-    return statement.to_string()
-  }).join("\n")
+
+fn Block::to_string(self : Block, previous_depth: Int) -> String{
+  let depth: Int = previous_depth+1
+  let indent = "    ".repeat(depth)
+  let statements = indent+ self.statements.map(fn(statement : Statement) -> String {
+    return statement.to_string(depth)
+  }).join("\n"+indent)
+  if self.is_conditional() {
+    return "\{self.name.unwrap()} \{self.head.unwrap().to_string()}\n\{statements}\n"
+  }
   return "\{statements}"
 }
 
@@ -77,7 +98,7 @@ fn Block::do_parenting(self : Block) -> Unit{
   for statement in self.statements {
     match statement {
       Statement::Block(block) => {
-        block.parent = Some(self.parent.unwrap())
+        block.parent = Some(Block(self))
         block.do_parenting()
       }
       _ => ()

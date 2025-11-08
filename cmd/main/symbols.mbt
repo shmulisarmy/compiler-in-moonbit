@@ -31,7 +31,7 @@ fn Function::to_string(self : Function) -> String{
     return param.name
   }).join(", ")
   let body = "{\n"+ self.body.statements.map(fn(statement : Statement) -> String {
-    return "     "+statement.to_string()
+    return "     "+statement.to_string(0)
   }).join("\n")+"\n"+"}"
   return "\{self.name}(\{params})[]\{self.return_type.to_string()}\{body}"
 }
