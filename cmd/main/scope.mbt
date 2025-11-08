@@ -156,7 +156,20 @@ fn Scope::get_expression_type(self : Scope, expression : Expression) -> Type{
       println("symbol \"\{class_name}\" is not a class")
       panic()
     }
-    Expression::Ast_Array(ast_array) => return array
+    Expression::Ast_Array(ast_array) => {
+      if ast_array.elements.length() == 0 {
+        return Type::{name: "Array", subtypes: Some([Type::new("na")])}
+      }
+      let type_ = self.get_expression_type(ast_array.elements[0])
+      for i, value in ast_array.elements.iter2() {
+        let this_elements_type = self.get_expression_type(value)
+        if !type_.can_hold(this_elements_type) {
+          println("array \{ast_array.to_string()} holds elements of type \{type_.to_string()} but element #\{i} is of type \{this_elements_type.to_string()}")
+          panic()
+        }
+      }
+      return Type::{name: "Array", subtypes: Some([type_])}
+    }
     Expression::String(_) => return string
     Expression::Number(_) => return int
     Expression::Object(object) => {

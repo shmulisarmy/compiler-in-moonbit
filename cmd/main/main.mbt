@@ -165,12 +165,17 @@ fn Type::sub_type(self : Type, name : String) -> Type{
   panic()
 }
 fn Type::can_hold(self : Type, other : Type) -> Bool{
+    if other.name == "na" {
+    return true
+  }
   if self.name != other.name {
     return false
   }
+
   if self.subtypes.is_some() {
-    for subtype in self.subtypes.unwrap() {
-      if !subtype.can_hold(other) {
+    let other_subtypes = other.subtypes.unwrap()
+    for i, subtype in self.subtypes.unwrap() {
+      if !subtype.can_hold(other_subtypes[i]) {
         return false
       }
     }
@@ -246,6 +251,9 @@ fn main{
     #|  return p.age
     #|}
     #|
+    #|function get_nums()[]Int{
+    #|  return [1, 2, 3]
+    #|}
     #|
     #|
     #|var person Person
