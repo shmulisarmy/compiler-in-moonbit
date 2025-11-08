@@ -158,8 +158,10 @@ fn Scope::get_symbol_type(self : Scope, symbol : Symbol) -> Type{
           return param.type_
         }))}, function.return_type])
       }
-      println("got here")
       return t
+    }
+    Symbol::Class(class_) => {
+      return Type::new("class")
     }
   }
 }

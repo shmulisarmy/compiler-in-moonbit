@@ -17,7 +17,7 @@ struct Token {
 
 
 
-let keywords = ["return", "var", "func", "function", "if", "else", "while", "for", "break", "continue", "null"]
+let keywords = ["return", "var", "func", "function", "if", "else", "while", "for", "break", "continue", "null", "class"]
 fn Token::to_string(self : Token)->String{
   return "\{self.value}"
 }
@@ -186,4 +186,18 @@ fn Tokenizer::next(self : Tokenizer) -> Token {
   }
   println("don't know how to handle \"\{self.cur_char()}\"")
   panic()
+}
+
+
+
+fn Tokenizer::peek(self : Tokenizer, amount : Int) -> Token {
+  let before_pos = self.pos
+  let mut amount_peeked = 0
+  while amount_peeked < amount-1 {
+    let _ = self.next()
+    amount_peeked += 1
+  }
+  let token = self.next()
+  self.pos = before_pos
+  return token
 }

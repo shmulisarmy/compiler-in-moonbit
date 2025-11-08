@@ -38,6 +38,7 @@ fn Function::to_string(self : Function) -> String{
 enum Symbol{
   Var(Var)
   Function(Function)
+  Class(Class)
 }
 
 
@@ -60,5 +61,6 @@ fn Symbol::get_name(self : Symbol) -> String{
   match self {
     Symbol::Var(var) => return var.name
     Symbol::Function(function) => return function.name
+    Symbol::Class(class_) => return class_.name
   }
 }

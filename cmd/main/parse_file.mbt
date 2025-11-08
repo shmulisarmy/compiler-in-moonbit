@@ -10,6 +10,7 @@ fn Parser::parse_file(self : Parser) -> Array[Symbol]{
     match keyword.value {
       "function" => symbols.push(Symbol::Function(self.function()))
       "var" => symbols.push(Symbol::Var(self.var()))
+      "class" => symbols.push(Symbol::Class(self.class()))
       _ => {
         println("expected keyword but got \"\{keyword.value}\"")
         panic()
