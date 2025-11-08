@@ -244,16 +244,15 @@ fn main{
     #|    return c
     #|  }
     #|  do_stuff()
-    #|  return a
+    #|  return person.age
     #|}
     #|
     #|
-    #|function f(){
     #|var person Person
-    #|var name String = person.name
-    #|
+    #|function f()none{
+    #|  var name String = person.name
     #|}
-    #|function do_stuff() {
+    #|function do_stuff()none {
     #|
     #|}
     #|
@@ -271,6 +270,7 @@ fn main{
     match symbol {
       Symbol::Function(function_) => {
         function_.type_check_vars()
+        function_.ensure_var_has_proper_return_type()
       }
       _ => ()
     }
