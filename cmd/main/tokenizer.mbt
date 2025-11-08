@@ -17,7 +17,7 @@ struct Token {
 
 
 
-let keywords = ["return", "var", "func", "if", "else", "while", "for", "break", "continue", "null"]
+let keywords = ["return", "var", "func", "function", "if", "else", "while", "for", "break", "continue", "null"]
 fn Token::to_string(self : Token)->String{
   return "\{self.value}"
 }

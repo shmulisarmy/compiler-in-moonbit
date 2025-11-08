@@ -231,30 +231,40 @@ fn Block::type_check_vars(self : Block) -> Unit{
 
 
 fn main{
-  let p = Parser::new(
-   (#| add(a Int, b Int) Int {
-    #| var n Int = 10
+  let main_file = 
+    (#| var n Int = 10
+    #|
+   #| function add(a Int, b Int) Int {
     #|  if a > b {
     #|    var c Int = n + b
     #|    return c
     #|  }
+    #|  do_stuff()
     #|  return a
+    #|}
+    #|
+    #|function do_stuff(a Int) {
+    #|
     #|}
     #|
     #|
     #|
     #|
-    #|
-    )
   )  
 
 
 
 
-  let f = p.function()
-  println("func: \{f.to_string()}")
-  f.do_parenting()
-  f.type_check_vars()
+  let module_ = Module::from_files([main_file])
+  module_.do_parenting()
+  for name, symbol in module_.symbols {
+    match symbol {
+      Symbol::Function(function_) => {
+        function_.type_check_vars()
+      }
+      _ => ()
+    }
+  }
 }
 
 
