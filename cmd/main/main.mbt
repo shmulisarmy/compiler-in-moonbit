@@ -220,6 +220,9 @@ fn Block::type_check_vars(self : Block) -> Unit{
         block.do_parenting()
         block.type_check_vars()
       } 
+      Statement::FunctionCall(function_call) => {
+        Scope::Block(self).validate_function_call_against_function_signature(function_call, Scope::Block(self).find_symbol_type(function_call.name))
+      } 
       _ => ()
     }
   } 
@@ -230,6 +233,7 @@ fn Block::type_check_vars(self : Block) -> Unit{
 fn main{
   let p = Parser::new(
    (#| add(a Int, b Int) Int {
+    #| var n Int = 10
     #|  if a > b {
     #|    var c Int = n + b
     #|    return c
@@ -241,9 +245,9 @@ fn main{
     #|
     #|
     #|
-    #|
     )
   )  
+
 
 
 
