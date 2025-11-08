@@ -11,15 +11,21 @@ enum Statement{
 }
 
 
-fn Statement::to_string(self : Statement, depth: Int) -> String{
+///|
+fn Statement::to_string(self : Statement, depth : Int) -> String {
   match self {
     Statement::FunctionCall(function_call) => return function_call.to_string()
     Statement::VarDeclaration(var_) => return var_.to_string()
-    Statement::Assign(assign) => return "\{assign.receiver.to_string()} = \{assign.value.to_string()}"
-    Statement::Return(return_) => return match return_ {
-      Some(return_) => "return \{return_.to_string()}"
-      None => "return".to_string()
-    }
+    Statement::Assign(assign) =>
+      return "\{assign.receiver.to_string()} = \{assign.value.to_string()}"
+    Statement::Return(return_) =>
+      return {
+        let return_string = purple("return")
+        match return_ {
+          Some(return_) => "\{return_string} \{return_.to_string()}"
+          None => "\{return_string}".to_string()
+        }
+      }
     Statement::Block(block) => return block.to_string(depth)
   }
 }
@@ -32,8 +38,8 @@ fn Parser::statement(self : Parser) -> Statement{
   match self.tokenizer.optionally_expect_token_type(TokenType::Keyword) {
     (true, "var") => return Statement::VarDeclaration(self.var())
     (true, "return") => return Statement::Return(Some(self.expression(0)))
-    (true, "if") => return Statement::Block(Block::{parent: None, name: Some("if"), head: Some(self.expression(0)), statements: self.block_statements()})
-    (true, "while") => return Statement::Block(Block::{parent: None, name: Some("while"), head: Some(self.expression(0)), statements: self.block_statements()})
+    (true, "if") => return Statement::Block(Block::{parent: None, name: Some("if"), head: Some(self.expression(0, okay_to_parse_object=false)), statements: self.block_statements()})
+    (true, "while") => return Statement::Block(Block::{parent: None, name: Some("while"), head: Some(self.expression(0, okay_to_parse_object=false)), statements: self.block_statements()})
     _ => ()
   }
 
@@ -88,7 +94,7 @@ fn Block::to_string(self : Block, previous_depth: Int) -> String{
     return statement.to_string(depth)
   }).join("\n"+indent)
   if self.is_conditional() {
-    return "\{self.name.unwrap()} \{self.head.unwrap().to_string()}\n\{statements}\n"
+    return "\{purple(self.name.unwrap())} \{self.head.unwrap().to_string()}\n\{statements}\n"
   }
   return "\{statements}"
 }

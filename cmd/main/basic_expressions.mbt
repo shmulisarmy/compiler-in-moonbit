@@ -6,6 +6,7 @@ enum Expression{
   FieldAccess(FieldAccess)
   Ast_Array(Ast_Array)
   String(String)
+  Object(Object)
 } derive (Eq) 
 
 
@@ -28,6 +29,7 @@ fn Expression::to_string(self : Expression) -> String{
     Expression::FieldAccess(field_access) => return field_access.to_string()
     Expression::Ast_Array(ast_array) => return ast_array.to_string()
     Expression::String(string) => return "\"\{string}\""
+    Expression::Object(object) => return object.to_string()
   }
 }
 

@@ -139,9 +139,7 @@ struct Type {
   name : String
   mut subtypes : Option[Array[Type]]
 } derive (Eq)
-fn green(text: String) -> String {
-    "\x1b[32m\{text}\x1b[0m".to_string()
-}
+
 
 fn Type::to_string(self : Type) -> String{
   if self.subtypes.is_some() {
@@ -243,8 +241,9 @@ fn main{
     #|    var c Int = n + b
     #|    return c
     #|  }
+    #|  var p = Person{}
     #|  do_stuff()
-    #|  return person.age
+    #|  return p.age
     #|}
     #|
     #|
@@ -277,6 +276,20 @@ fn main{
         function_.type_check_vars()
         function_.ensure_var_has_proper_return_type()
       }
+      _ => ()
+    }
+  }
+  for name, symbol in module_.symbols {
+    match symbol {
+      Symbol::Function(function_) => {
+        println("\{function_.to_string()}")
+      }
+      Symbol::Var(var_) => {
+        println("\{var_.to_string()}")
+      }
+      // Symbol::Class(class_) => {
+      //   println("\{class_.to_string()}")
+      // }
       _ => ()
     }
   }

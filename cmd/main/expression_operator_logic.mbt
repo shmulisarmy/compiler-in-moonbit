@@ -25,8 +25,8 @@ let operator_precedence: Map[String, Int] = {
   ">" : 3,
 }
 
-fn Parser::expression(self : Parser, left_pull: Int) -> Expression {
-    let mut left: Expression = self.wrapped_term()
+fn Parser::expression(self : Parser, left_pull: Int, okay_to_parse_object? : Bool=true) -> Expression {
+    let mut left: Expression = self.wrapped_term(okay_to_parse_object~)
     while self.tokenizer.in_range() {
       let prev = self.tokenizer.pos
       let token = self.tokenizer.next()
@@ -37,7 +37,7 @@ fn Parser::expression(self : Parser, left_pull: Int) -> Expression {
             return left
           }
           let op = token
-          let right = self.expression(operator_precedence[token.value.to_string()])
+          let right = self.expression(operator_precedence[token.value.to_string()], okay_to_parse_object~)
           left = Expression::Operation(Operation::{left: left, right: right, op: op})
         }
         _ => {

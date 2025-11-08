@@ -159,6 +159,15 @@ fn Scope::get_expression_type(self : Scope, expression : Expression) -> Type{
     Expression::Ast_Array(ast_array) => return array
     Expression::String(_) => return string
     Expression::Number(_) => return int
+    Expression::Object(object) => {
+      return match object.class_reference {
+        Expression::VarReference(var_reference) => Type::new(var_reference)
+        _ => {
+          println("object \"\{object.to_string()}\" class reference is not a var reference")
+          panic()
+        }
+      }
+    }
   }
 }
 

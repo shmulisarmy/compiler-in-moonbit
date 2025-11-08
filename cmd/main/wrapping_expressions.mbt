@@ -41,7 +41,7 @@ fn[T] Parser::custom_list(
 }
 
 
-fn Parser::wrapped_term(self : Parser) -> Expression {
+fn Parser::wrapped_term(self : Parser, okay_to_parse_object? : Bool = true) -> Expression {
   let mut expr = self.term()
   while self.tokenizer.in_range()  {
     let mut changed_since_last_time = false
@@ -52,6 +52,10 @@ fn Parser::wrapped_term(self : Parser) -> Expression {
     if self.tokenizer.optionally_expect_char('.') {
       let field = self.tokenizer.next().value
       expr = Expression::FieldAccess(FieldAccess::{object: expr, field: field})
+      changed_since_last_time = true
+    }
+    if okay_to_parse_object && self.tokenizer.next_non_space_char() == '{' {
+      expr = Expression::Object(Object::{class_reference: expr, field_values: self.expression_list('{', '}')})
       changed_since_last_time = true
     }
     if !changed_since_last_time{
@@ -67,6 +71,20 @@ struct FieldAccess{
   object : Expression
   field : StringView
 } derive (Eq) 
+
+
+
+struct Object{
+  class_reference : Expression
+  field_values : Array[Expression]
+} derive (Eq) 
+
+
+fn Object::to_string(self : Object) -> String{
+  let fields = self.field_values.map((field) => field.to_string()).join(", ")
+  return "\{self.class_reference.to_string()}(\{fields})"
+}
+
 
 fn FieldAccess::to_string(self : FieldAccess) -> String{
   return "\{self.object.to_string()}.\{self.field.to_string()}"

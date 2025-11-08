@@ -6,8 +6,8 @@ struct Var{
 
 fn Var::to_string(self : Var) -> String{
   match self.default_value {
-    Some(default_value) => return "\{self.name}: \{self.type_.to_string()} = \{default_value.to_string()}"
-    None => return "\{self.name}: \{self.type_.to_string()}"
+    Some(default_value) => return "\{yellow(self.name)}: \{self.type_.to_string()} = \{default_value.to_string()}"
+    None => return "\{yellow(self.name)}: \{self.type_.to_string()}"
   }
 }
 
@@ -33,7 +33,7 @@ fn Function::to_string(self : Function) -> String{
   let body = "{\n"+ self.body.statements.map(fn(statement : Statement) -> String {
     return "     "+statement.to_string(0)
   }).join("\n")+"\n"+"}"
-  return "\{self.name}(\{params})[]\{self.return_type.to_string()}\{body}"
+  return "\{yellow(self.name)}(\{params})[]\{self.return_type.to_string()}\{body}"
 }
 enum Symbol{
   Var(Var)
