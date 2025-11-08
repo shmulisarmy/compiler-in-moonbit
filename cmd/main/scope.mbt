@@ -119,8 +119,7 @@ fn Scope::get_symbol(self : Scope, name : String) -> Symbol{
       if  function.get_local_symbol(name) is Some(local_sym){
         return local_sym
       }
-      println("symbol \"\{name}\" not found")
-      panic()
+      return function.parent.unwrap().get_symbol(name)
     } 
     Scope::Block(block) => return block.get_symbol(name)
   }
@@ -132,7 +131,31 @@ fn Scope::get_expression_type(self : Scope, expression : Expression) -> Type{
     Expression::Operation(operation) => return self.get_expression_type(operation.left)
     Expression::FunctionCall(function_call) => return self.find_symbol_type(function_call.name)
     Expression::VarReference(var_reference) => return self.find_symbol_type(var_reference)
-    Expression::FieldAccess(field_access) => return self.get_expression_type(field_access.object)
+    Expression::FieldAccess(field_access) => return {
+      let class_name = self.get_expression_type(field_access.object).name
+      let class_ = self.get_symbol(class_name)
+      if class_ is Class(class_){
+        let field = class_.dot(field_access.field.to_string())
+        match field {
+          Some(field) => {
+            return match field{
+              Symbol::Var(var_) => var_.type_
+              Symbol::Function(function_) => function_.return_type
+              _ => {
+                println("there shouldnt be a symbol other than var or function that you can get from a field access on a class")
+                panic()
+              }
+            }
+          }
+          None => {
+            println("field \"\{field_access.field}\" not found in class \"\{class_name}\"")
+            panic()
+          }
+        }
+      }
+      println("symbol \"\{class_name}\" is not a class")
+      panic()
+    }
     Expression::Ast_Array(ast_array) => return array
     Expression::String(_) => return string
     Expression::Number(_) => return int

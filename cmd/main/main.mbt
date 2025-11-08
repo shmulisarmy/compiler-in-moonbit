@@ -200,9 +200,9 @@ fn Function::type_check_vars(self : Function) -> Unit{
   for var_ in self.params {
     Scope::Function(self).ensure_var_has_proper_type(var_)
   } 
-  self.body.type_check_vars()
+  self.body.type_check_statements()
 }
-fn Block::type_check_vars(self : Block) -> Unit{
+fn Block::type_check_statements(self : Block) -> Unit{
   // statements and assignments
   for var_ in self.statements {
     match var_ {
@@ -218,7 +218,7 @@ fn Block::type_check_vars(self : Block) -> Unit{
       Statement::Block(block) => {
         block.parent = Some(Scope::Block(self))
         block.do_parenting()
-        block.type_check_vars()
+        block.type_check_statements()
       } 
       Statement::FunctionCall(function_call) => {
         Scope::Block(self).validate_function_call_against_function_signature(function_call, Scope::Block(self).find_symbol_type(function_call.name))
@@ -234,6 +234,10 @@ fn main{
   let main_file = 
     (#| var n Int = 10
     #|
+    #|class Person {
+    #|  name String
+    #|  age Int
+    #|}
    #| function add(a Int, b Int) Int {
     #|  if a > b {
     #|    var c Int = n + b
@@ -243,7 +247,13 @@ fn main{
     #|  return a
     #|}
     #|
-    #|function do_stuff(a Int) {
+    #|
+    #|function f(){
+    #|var person Person
+    #|var name String = person.name
+    #|
+    #|}
+    #|function do_stuff() {
     #|
     #|}
     #|
