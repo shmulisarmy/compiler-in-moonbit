@@ -238,7 +238,7 @@ fn main{
     #|  name String
     #|  age Int
     #|}
-   #| function add(a Int, b Int) Int {
+   #| function add(a Int, b Int) {
     #|  if a > b {
     #|    var c Int = n + b
     #|    return c
@@ -248,12 +248,14 @@ fn main{
     #|}
     #|
     #|
+    #|
     #|var person Person
-    #|function f()none{
+    #|function f(){
     #|  var name String = person.name
     #|}
-    #|function do_stuff()none {
+    #|function do_stuff() {
     #|
+    #|  var a Int = add(1,2,)
     #|}
     #|
     #|
@@ -269,6 +271,9 @@ fn main{
   for name, symbol in module_.symbols {
     match symbol {
       Symbol::Function(function_) => {
+        if function_.return_type.name == "unknown" {
+          function_.infer_return_type()
+        }
         function_.type_check_vars()
         function_.ensure_var_has_proper_return_type()
       }

@@ -19,7 +19,7 @@ struct Function{
   name : String
   params : Array[Var]
   body : Block
-  return_type : Type
+  mut return_type : Type //mut is for when we infer it
   mut parent : Option[Scope]
 }
 

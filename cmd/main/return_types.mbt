@@ -15,6 +15,35 @@ fn Block::collect_all_return_types(self: Block, collection: Array[Type])->Unit{
 }
 
 
+fn Block::first_return_type(self: Block)->Option[Type]{
+  for statement in self.statements{
+    match statement{
+      Return(r) => {  
+        if r is Some(r) {
+          return Some(Scope::Block(self).get_expression_type(r))
+        }
+      }
+      Block(block) => {
+        return block.first_return_type()
+      }
+    _ => ()
+    }
+  }
+  return None
+}
+
+
+
+
+fn Function::infer_return_type(self: Function)->Unit{
+  let first_return_type = self.body.first_return_type()
+  if first_return_type is Some(first_return_type){
+    self.return_type = first_return_type
+  } else {
+    self.return_type = Type::new("none")
+  }
+}
+
 
 
 fn Function::ensure_var_has_proper_return_type(self: Function)->Unit{
@@ -34,3 +63,5 @@ fn Function::ensure_var_has_proper_return_type(self: Function)->Unit{
     }
   }
 }
+
+

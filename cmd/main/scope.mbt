@@ -129,7 +129,7 @@ fn Scope::get_symbol(self : Scope, name : String) -> Symbol{
 fn Scope::get_expression_type(self : Scope, expression : Expression) -> Type{
   match expression {
     Expression::Operation(operation) => return self.get_expression_type(operation.left)
-    Expression::FunctionCall(function_call) => return self.find_symbol_type(function_call.name)
+    Expression::FunctionCall(function_call) => return self.find_symbol_type(function_call.name).subtypes.unwrap()[1]
     Expression::VarReference(var_reference) => return self.find_symbol_type(var_reference)
     Expression::FieldAccess(field_access) => return {
       let class_name = self.get_expression_type(field_access.object).name
