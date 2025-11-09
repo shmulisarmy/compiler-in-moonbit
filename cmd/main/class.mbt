@@ -3,6 +3,7 @@ struct Class{
   parent : Option[Module]
   fields : Array[Var]
   methods : Array[Function]
+  mut auto_cast_types : Array[String]
 }
 
 

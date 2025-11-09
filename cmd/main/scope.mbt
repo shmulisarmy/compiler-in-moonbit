@@ -13,9 +13,17 @@ fn Scope::validate_function_call_against_function_signature(self : Scope, functi
     panic()
   }
   for i, arg in function_signature.sub_type("params").subtypes.unwrap().iter2() {
-    if !arg.can_hold(self.get_expression_type(function_call.args[i])) {
-      println("function call \"\{function_call.name}\" has argument \"\{arg.name}\" of type \"\{arg.name}\" but \{self.get_expression_type(function_call.args[i]).name} expected")
-      panic() 
+    match self.get_type_compliance(arg, self.get_expression_type(function_call.args[i])) {
+      TypeCompliance::SameType => ()
+      TypeCompliance::AutoCastable => ()
+      TypeCompliance::DynamicCopyOnly => {
+        println("function call \"\{function_call.name}\" has argument \"\{arg.to_string()}\" expected, but \{self.get_expression_type(function_call.args[i]).to_string()} can only be copied, but has no auto-copy trait")
+        panic() 
+      }
+      _ => {
+        println("function call \"\{function_call.name}\" has argument \"\{arg.to_string()}\" of type \"\{arg.to_string()}\" but \{self.get_expression_type(function_call.args[i]).to_string()} expected")
+        panic() 
+      }
     }
   }
 }
@@ -163,9 +171,17 @@ fn Scope::get_expression_type(self : Scope, expression : Expression) -> Type{
       let type_ = self.get_expression_type(ast_array.elements[0])
       for i, value in ast_array.elements.iter2() {
         let this_elements_type = self.get_expression_type(value)
-        if !type_.can_hold(this_elements_type) {
-          println("array \{ast_array.to_string()} holds elements of type \{type_.to_string()} but element #\{i} is of type \{this_elements_type.to_string()}")
-          panic()
+        match self.get_type_compliance(type_, this_elements_type) {
+          TypeCompliance::SameType => ()
+          TypeCompliance::AutoCastable => ()
+          TypeCompliance::DynamicCopyOnly  => {
+            println("array \{ast_array.to_string()} can only take \{type_.to_string()} by copy but element #\{i} is of type \{this_elements_type.to_string()}")
+            panic()
+          }
+          _ => {
+            println("array \{ast_array.to_string()} holds elements of type \{type_.to_string()} but element #\{i} is of type \{this_elements_type.to_string()}")
+            panic()
+          }
         }
       }
       return Type::{name: "Array", subtypes: Some([type_])}
@@ -216,9 +232,14 @@ fn Scope::ensure_var_has_proper_type(self : Scope, var_ : Var) -> Unit {
   if var_.type_.name != "unknown" {
     match var_.default_value{
       Some(default_value) => {
-        if !var_.type_.can_hold(self.get_expression_type(default_value)) {
-          println("var \"\{var_.name}\" type \"\{var_.type_.name}\" and default value \"\{self.get_expression_type(default_value).name}\" mismatch")
-          panic()
+        match self.get_type_compliance(var_.type_, self.get_expression_type(default_value)) {
+          TypeCompliance::SameType => ()
+          TypeCompliance::AutoCastable => ()
+          TypeCompliance::DynamicCopyOnly  => ()
+          _ => {
+            println("var \"\{var_.name}\" type \"\{var_.type_.name}\" and default value \"\{self.get_expression_type(default_value).name}\" mismatch")
+            panic()
+          }
         }
       }
       _ => ()

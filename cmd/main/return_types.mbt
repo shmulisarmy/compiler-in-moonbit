@@ -57,9 +57,14 @@ fn Function::ensure_var_has_proper_return_type(self: Function)->Unit{
     panic()
   }
   for return_type_ in all_return_types.iter() {
-    if !self.return_type.can_hold(return_type_) {
-      println("function \"\{self.name}\" has a return type \{self.return_type.to_string()} but returns \{return_type_.to_string()}")
-      panic()
+    match Scope::Function(self).get_type_compliance(self.return_type, return_type_) {
+      TypeCompliance::SameType => ()
+      TypeCompliance::AutoCastable => ()
+      TypeCompliance::DynamicCopyOnly => ()
+      _ => {
+        println("function \"\{self.name}\" has a return type \{self.return_type.to_string()} but returns \{return_type_.to_string()}")
+        panic()
+      }
     }
   }
 }

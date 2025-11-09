@@ -109,8 +109,8 @@ fn Parser::function(self: Parser) -> Function{
 
 fn Parser::var(self : Parser) -> Var {
   let name = self.tokenizer.identifier()
-  let type_ = if self.tokenizer.next_non_space_char().is_ascii_alphabetic() {
-    Type::new(self.tokenizer.identifier().to_string())
+  let type_ = if self.looks_like_type() {
+    self.type_()
   } else {
     Type::new("unknown")
   }
@@ -164,23 +164,65 @@ fn Type::sub_type(self : Type, name : String) -> Type{
   println("type \"\{name}\" not found in \"\{self.name}\"")
   panic()
 }
-fn Type::can_hold(self : Type, other : Type) -> Bool{
-    if other.name == "na" {
-    return true
-  }
-  if self.name != other.name {
+enum TypeCompliance{
+  AutoCastable
+  NonCompliant
+  ReceiverDetermines
+  SameType
+  DynamicCopyOnly
+}
+
+
+///|
+fn Scope::can_auto_cast(self : Scope, original_type : Type, to : Type) -> Bool {
+  if to.name == "union" {
+    if to.subtypes.is_none() {
+      println("union has no subtypes")
+      panic()
+    }
+    for subtype in to.subtypes.unwrap() {
+      match self.get_type_compliance(subtype, original_type) {
+        TypeCompliance::SameType => return true
+        TypeCompliance::AutoCastable => return true
+        TypeCompliance::DynamicCopyOnly => return true
+        _ => ()
+      }
+    }
     return false
   }
+  let cls = self.get_symbol(original_type.name)
+  if cls is Class(cls) {
+    return cls.auto_cast_types.contains(to.name)
+  } else {
+    println("symbol \"\{original_type.name}\" is not a class")
+    panic()
+  }
+}
 
-  if self.subtypes.is_some() {
+fn Scope::get_type_compliance(self : Scope, type_ : Type, other : Type) -> TypeCompliance{
+    if other.name == "na" {
+    return TypeCompliance::ReceiverDetermines
+  }
+  if type_.name != other.name {
+    if self.can_auto_cast(other, type_){
+      return TypeCompliance::AutoCastable
+    }
+    return TypeCompliance::NonCompliant
+  }
+
+  if type_.subtypes.is_some() {
     let other_subtypes = other.subtypes.unwrap()
-    for i, subtype in self.subtypes.unwrap() {
-      if !subtype.can_hold(other_subtypes[i]) {
-        return false
+    for i, subtype in type_.subtypes.unwrap() {
+      match self.get_type_compliance(subtype, other_subtypes[i]) {
+        TypeCompliance::NonCompliant => return TypeCompliance::NonCompliant
+        TypeCompliance::ReceiverDetermines => return TypeCompliance::NonCompliant
+        TypeCompliance::AutoCastable => return TypeCompliance::DynamicCopyOnly
+        TypeCompliance::DynamicCopyOnly => return TypeCompliance::DynamicCopyOnly
+        TypeCompliance::SameType => ()
       }
     }
   }
-  return true
+  return TypeCompliance::SameType
 }
 /// types
 fn Type::new(name : String) -> Type {
@@ -213,9 +255,14 @@ fn Block::type_check_statements(self : Block) -> Unit{
         Scope::Block(self).ensure_var_has_proper_type(var_)
       }
       Statement::Assign(assign) => {
-        if !Scope::Block(self).get_expression_type(assign.receiver).can_hold(Scope::Block(self).get_expression_type(assign.value)) {
-          println("you are trying to assign to \"\{assign.receiver.to_string()}\" of type \"\{Scope::Block(self).get_expression_type(assign.receiver).name}\" with type \"\{Scope::Block(self).get_expression_type(assign.value).name}\"")
-          panic()
+        match Scope::Block(self).get_type_compliance(Scope::Block(self).get_expression_type(assign.receiver), Scope::Block(self).get_expression_type(assign.value)) {
+          TypeCompliance::SameType => ()
+          TypeCompliance::AutoCastable => ()
+          TypeCompliance::DynamicCopyOnly => ()
+          _ => {
+            println("you are trying to assign to \"\{assign.receiver.to_string()}\" of type \"\{Scope::Block(self).get_expression_type(assign.receiver).name}\" with type \"\{Scope::Block(self).get_expression_type(assign.value).name}\"")
+            panic()
+          }
         }
       } 
       Statement::Block(block) => {
@@ -233,6 +280,10 @@ fn Block::type_check_statements(self : Block) -> Unit{
 
 
 
+
+
+
+
 fn main{
   let main_file = 
     (#| var n Int = 10
@@ -241,7 +292,7 @@ fn main{
     #|  name String
     #|  age Int
     #|}
-   #| function add(a Int, b Int) {
+   #| function add(a Int, b Int) Int{
     #|  if a > b {
     #|    var c Int = n + b
     #|    return c
@@ -262,9 +313,23 @@ fn main{
     #|}
     #|function do_stuff() {
     #|
-    #|  var a Int = add(1,2,)
+    #|  var a union<Int> = add(1,2,)
     #|}
     #|
+    #|class String{
+    #|}
+    #|
+    #|class Int{
+    #|  auto_cast[String]
+    #|}
+    #|
+    #|
+    #|
+    #|
+    #|function returns_string()String{
+    #|  return "9"
+    #|  return 9
+    #|}
     #|
     #|
     #|
