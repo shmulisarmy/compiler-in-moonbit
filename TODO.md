@@ -6,14 +6,14 @@ Project Description
 
 ### Todo
 
-- [ ] implement classes  
-- [ ] make sure that scopes have reference to their parent to defer symbol searching  
-- [ ] add sub blocks and do the same type of checks on function body but on these sub blocks recursively  
-- [ ] infer and validate return types  
 
 ### In Progress
 
 
 ### Done ✓
 
+- [x] infer and validate return types  
+- [x] add sub blocks and do the same type of checks on function body but on these sub blocks recursively  
+- [x] make sure that scopes have reference to their parent to defer symbol searching  
+- [x] implement classes  
 
