@@ -50,3 +50,35 @@ test "auto cast"{
     }
   }
 }
+
+
+
+test "auto cast with array"{
+  //putting a 3 into the array of strings is okay because String is one of the types that an int can automatically get cast to (this wouldn't work if string was not in the '[]' after 'auto_cast')
+  let main_file = (#|
+    #| var arr = ["1", "2", 3]
+    #|
+    #|class Int{
+    #|  auto_cast[String]
+    #|}
+  )
+
+
+  let module_ = Module::from_files([main_file])
+  module_.do_parenting()
+  for name, symbol in module_.symbols {
+    match symbol {
+      Symbol::Function(function_) => {
+        if function_.return_type.name == "unknown" {
+          function_.infer_return_type()
+        }
+        function_.type_check_vars()
+        function_.ensure_var_has_proper_return_type()
+      }
+      Symbol::Var(var_) => {
+        Scope::Module(module_).ensure_var_has_proper_type(var_)
+      }
+      _ => ()
+    }
+  }
+}
