@@ -281,55 +281,65 @@ fn Block::type_check_statements(self : Block) -> Unit{
 
 
 
-
+fn Function::print_byte_code(self: Function,expression: Expression)->Unit{
+  println(match expression{
+    String(_) => "ldc \{expression.to_string()}"
+    Ast_Array(_) => {
+      println("array not supported")
+      panic()
+    }
+    FieldAccess(_) => {
+      println("field access not supported")
+      panic()
+    }
+    VarReference(_) => "icons"
+    FunctionCall(fc) => {
+      for arg in fc.args {
+        self.print_byte_code(arg)
+      }
+      "invokestatic Hello/\{fc.name}/(I)I"
+    }
+    Operation(expr) => {
+      self.print_byte_code(expr.left)
+      self.print_byte_code(expr.right)
+      match expr.op.value {
+        "+" => "iadd"
+        "-" => "isub"
+        "*" => "imul"
+        "/" => "idiv"
+        _ => {
+          println("operation \"\{expr.op.value}\" not supported")
+          panic()
+        }
+      }      
+    }
+    Number(_) => "iconst \{expression.to_string()}"
+    Object(_) => {
+      println("object not supported")
+      panic()
+    }
+  })
+}
 
 
 fn main{
   let main_file = 
     (#| var n Int = 10
     #|
-    #|class Person {
-    #|  name String
-    #|  age Int
-    #|}
-   #| function add(a Int, b Int) Int{
-    #|  if a > b {
-    #|    var c Int = n + b
-    #|    return c
-    #|  }
-    #|  var p = Person{}
-    #|  do_stuff()
-    #|  return p.age
-    #|}
     #|
-    #|function get_nums()[]Int{
-    #|  return [1, 2, 3]
+    #|function triple(x Int) Int{
+    #|  return x*3
     #|}
     #|
     #|
-    #|var person Person
-    #|function f(){
-    #|  var name String = person.name
-    #|}
-    #|function do_stuff() {
-    #|
-    #|  var a union<Int> = add(1,2,)
+    #|function add(x Int, y Int) Int{
+    #|  return x+y
     #|}
     #|
-    #|class String{
+    #|function main(){
+    #|  add(triple(add(9, 7,),), 3,)
     #|}
     #|
-    #|class Int{
-    #|  auto_cast[String]
-    #|}
-    #|
-    #|
-    #|
-    #|
-    #|function returns_string()String{
-    #|  return "9"
-    #|  return 9
-    #|}
     #|
     #|
     #|
@@ -363,6 +373,23 @@ fn main{
       // Symbol::Class(class_) => {
       //   println("\{class_.to_string()}")
       // }
+      _ => ()
+    }
+  }
+
+
+  for name, symbol in module_.symbols {
+    match symbol {
+      Symbol::Function(function_) => {
+        for statement in function_.body.statements {
+          match statement {
+            Statement::FunctionCall(function_call) => {
+              function_.print_byte_code(Expression::FunctionCall(function_call))
+            }
+            _ => ()
+          }
+        }
+      }
       _ => ()
     }
   }
